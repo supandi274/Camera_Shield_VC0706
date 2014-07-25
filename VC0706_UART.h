@@ -56,19 +56,24 @@
 *
 */
 
-#ifndef _VC0706_H_
-#define _VC0706_H_
+#ifndef _VC0706_UART_H_
+#define _VC0706_UART_H_
 
 #include "Arduino.h"
 #include "SoftwareSerial.h"
+#include <SPI.h>
 
 #define DEBUG                       0
+#define USE_SOFTWARE_SERIAL			1
+#define TRANSFER_BY_SPI				1
+
 #if DEBUG
     #define DBG(x)                  Serial.println(x);
 #else
     #define DBG(x)
 #endif
 
+#define SLAVE_PIN					8
 #define DEFAULT_BAUDRATE            38400
 #define DEFAULT_TIMEOUT             200
 #define RESPONSE_HEAD_BYTE          4
@@ -134,7 +139,7 @@
 #define VC0706_GET_ZOOM             0x53
 
 #define CAMERA_BUFF_SIZE            100
-#define CAMERADELAY                 10
+#define CAMERADELAY                 100
 
 #define VC0706_SERIAL_NUMBER        0x00
 
@@ -165,7 +170,11 @@ enum VC0706_BaudRate
 class VC0706 
 {
 public:
+#if USE_SOFTWARE_SERIAL
     VC0706(SoftwareSerial *serial){
+#else
+	VC0706(HardwareSerial *serial){
+#endif
         vc = serial;
         framePosition = 0;
         bufferLen = 0;
@@ -179,7 +188,8 @@ public:
     boolean setImageSize(uint8_t size); 
     boolean takePicture(void);
     boolean resumeVideo(void);
-    uint8_t* getPicture(uint8_t length); 
+    void getPicture(uint16_t length); 
+	uint8_t* readPicture(uint8_t length);
     boolean motionDetected(void); 
     uint8_t setMotionStatus(uint8_t x, uint8_t d1, uint8_t d2);     
     uint8_t getMotionStatus(uint8_t x);
@@ -196,8 +206,11 @@ private:
     uint8_t vcBuff[CAMERA_BUFF_SIZE];
     uint8_t bufferLen;
     uint16_t framePosition;
+#if USE_SOFTWARE_SERIAL
     SoftwareSerial *vc;
-
+#else
+	HardwareSerial *vc;
+#endif
     boolean _task(uint8_t cmd[], uint8_t cmdLen, uint8_t respBytes, uint8_t timeOut = DEFAULT_TIMEOUT, 
                   boolean flushflag = true, boolean verify = true); 
     void _send(uint8_t cmd[], uint8_t len); 

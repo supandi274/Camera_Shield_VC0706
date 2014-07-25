@@ -56,7 +56,7 @@
 *
 */
 
-#include "VC0706.h"
+#include "VC0706_UART.h"
 
 void VC0706::_send(uint8_t cmd[], uint8_t len) 
 {
@@ -128,7 +128,15 @@ void VC0706::begin(VC0706_BaudRate baudRate)
 {
     vc->begin(DEFAULT_BAUDRATE);
     resetBaudrate(baudRate);
-    vc->begin(baud);
+    vc->begin(baudRate);
+#if TRANSFER_BY_SPI
+	pinMode(SLAVE_PIN, OUTPUT);
+	digitalWrite(SLAVE_PIN,HIGH);
+	SPI.setBitOrder(MSBFIRST);
+	SPI.setClockDivider(SPI_CLOCK_DIV32);
+	SPI.setDataMode(SPI_MODE0);
+	SPI.begin(); 
+#endif
 }
 
 uint8_t VC0706::available(void) 
@@ -156,32 +164,26 @@ boolean VC0706::resetBaudrate(VC0706_BaudRate rate)
         case BaudRate_9600:
             S1RELH = 0xAE;
             S1RELL = 0xC8;
-            baud = 9600;
             break;
         case BaudRate_19200:
             S1RELH = 0x56;
             S1RELL = 0xE4;
-            baud = 19200;
             break;
         case BaudRate_38400:
             S1RELH = 0x2A;
             S1RELL = 0xF2;
-            baud = 38400;
             break;
         case BaudRate_57600:
             S1RELH = 0x1C;
             S1RELL = 0x4C;
-            baud = 57600;
             break;
         case BaudRate_115200:
             S1RELH = 0x0D;
             S1RELL = 0xA6;
-            baud = 115200;
             break;
-        default :
+        default : //19200
             S1RELH = 0x56;
             S1RELL = 0xE4;
-            baud = 19200;
             break;  
     }
     uint8_t cmd[] = {VC0706_SET_PORT,0x03,0x01,S1RELH,S1RELL};
@@ -222,8 +224,28 @@ boolean VC0706::resumeVideo(void)
     return _task(cmd, sizeof(cmd), 5);
 }
 
-uint8_t* VC0706::getPicture(uint8_t length) 
+void VC0706::getPicture(uint16_t length) 
 {
+#if TRANSFER_BY_SPI
+	uint8_t cmd[] = {VC0706_READ_FBUF, 0x0C, 0x00, 0x0F, 0x00, 0x00, 0x00, 
+                       0x00, 0x00, 0x00, length >> 8, length & 0xFF, 0x00, CAMERADELAY & 0xFF};	
+	_send(cmd, sizeof(cmd));
+	delay(5);
+#endif //nothing to do with uart transfer mode
+}
+
+uint8_t* VC0706::readPicture(uint8_t length)
+{
+#if TRANSFER_BY_SPI
+	digitalWrite(SLAVE_PIN, LOW);
+	bufferLen = 0;
+	uint8_t tmp = SPI.transfer(0);
+	while(bufferLen < length){
+		vcBuff[bufferLen++] = SPI.transfer(0);
+	}
+	digitalWrite(SLAVE_PIN, HIGH);
+	return vcBuff;
+#else // transfer by serial
     uint8_t cmd[] = {VC0706_READ_FBUF, 0x0C, 0x0, 0x0A, 0, 0, framePosition >> 8, 
                      framePosition & 0xFF, 0, 0, 0, length, CAMERADELAY >> 8, CAMERADELAY & 0xFF};
                      
@@ -235,6 +257,7 @@ uint8_t* VC0706::getPicture(uint8_t length)
         
     framePosition += length;
     return vcBuff;
+#endif
 }
 
 boolean VC0706::motionDetected(void) 

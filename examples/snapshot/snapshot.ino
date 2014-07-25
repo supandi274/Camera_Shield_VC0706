@@ -1,18 +1,23 @@
 #include "SoftwareSerial.h"
-#include <VC0706.h>
+#include <VC0706_UART.h>
 #include <SD.h>
-#define SS  10
+#include <SPI.h>
+#define SS_SD  10
 
+//use software serial
 SoftwareSerial cameraconnection(2,3);//Rx, Tx
 VC0706 cam = VC0706(&cameraconnection);
+//use hardware serial
+//HardwareSerial cameraconnection(Serial3);
+//VC0706 cam = VC0706(&Serial1);
 
 void setup() 
 {
     Serial.begin(9600);
     Serial.println("VC0706 Camera Snapshot Test ...");
-    // see if the card is present and can be initialized:
-    if (!SD.begin(SS)) {
-        Serial.println("Card failed, or not present");
+    
+    if (!SD.begin(SS_SD)) {
+        Serial.println("SD Card init failed...");
         return;
     }  
     if(true == cameraInit()){
@@ -29,12 +34,10 @@ void loop()
 
 bool cameraInit()
 {
-    // Try to locate the camera
     cam.begin(BaudRate_19200);
-    // Print out the camera version information (optional)
     char *reply = cam.getVersion();
     if (reply == 0) {
-        Serial.print("Failed to get version");
+        Serial.println("Failed to get version");
         return false;
     } else {
         Serial.println("version:");
@@ -47,19 +50,6 @@ bool cameraInit()
 
 void snapShot()
 {
-#if 0 //not supported now!
-    // Set the picture size - you can choose one of 640x480, 320x240 or 160x120 
-    // Remember that bigger pictures take longer to transmit!
-    cam.setImageSize(VC0706_640x480);   // biggest
-    //cam.setImageSize(VC0706_320x240); // medium
-    //cam.setImageSize(VC0706_160x120); // small
-
-    uint8_t imgsize = cam.getImageSize();
-    Serial.print("Image size: ");
-    if (imgsize == VC0706_640x480) Serial.println("640x480");
-    if (imgsize == VC0706_320x240) Serial.println("320x240");
-    if (imgsize == VC0706_160x120) Serial.println("160x120");
-#endif
     Serial.println("Snap in 3 secs...");
     delay(3000);
     if (! cam.takePicture()){ 
@@ -82,39 +72,24 @@ void snapShot()
     File imgFile = SD.open(filename, FILE_WRITE);
     Serial.print("create ");
     Serial.println(filename);
-    // Get the size of the image (frame) taken  
     uint16_t jpglen = cam.getFrameLength();
     Serial.print("wait to fetch ");
     Serial.print(jpglen, DEC);
     Serial.println(" byte image ...");
     int32_t time = millis();
-    // Read all the data up to # bytes!
-    while (jpglen != 0) {
-        // read 32 bytes at a time;
-        uint8_t *buffer;
-        uint8_t bytesToRead = min(32, jpglen);   // change 32 to 64 for a speedup but may not work with all setups!
-        buffer = cam.getPicture(bytesToRead);
-        imgFile.write(buffer, bytesToRead);
-        //Serial.print("Read ");  Serial.print(bytesToRead, DEC); Serial.println(" bytes");
-        jpglen -= bytesToRead;
-    }
+    cam.getPicture(jpglen);
+    uint8_t *buffer;
+    while(jpglen != 0){
+         uint8_t bytesToRead = min(32, jpglen);
+         buffer = cam.readPicture(bytesToRead);     
+         imgFile.write(buffer, bytesToRead);
+         //Serial.print("Read ");  Serial.print(bytesToRead, DEC); Serial.println(" bytes");
+         jpglen -= bytesToRead;   
+    } 
     imgFile.close();
-  
     time = millis() - time;
     Serial.println("Done!");
     Serial.print("Took "); Serial.print(time); Serial.println(" ms");
     cam.resumeVideo();    
-}
-
-void debug()
-{
-    while(1){
-        while(cameraconnection.available()){
-	    Serial.write(cameraconnection.read());
-        }
-        while(Serial.available()){     
-	    cameraconnection.write(Serial.read()); 
-        }
-    }
 }
 
