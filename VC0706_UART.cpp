@@ -128,7 +128,7 @@ void VC0706::begin(VC0706_BaudRate baudRate)
 {
     vc->begin(DEFAULT_BAUDRATE);
     resetBaudrate(baudRate);
-    vc->begin(baudRate);
+    vc->begin(baud);
 #if TRANSFER_BY_SPI
 	pinMode(SLAVE_PIN, OUTPUT);
 	digitalWrite(SLAVE_PIN,HIGH);
@@ -164,26 +164,32 @@ boolean VC0706::resetBaudrate(VC0706_BaudRate rate)
         case BaudRate_9600:
             S1RELH = 0xAE;
             S1RELL = 0xC8;
+			baud = 9600;
             break;
         case BaudRate_19200:
             S1RELH = 0x56;
             S1RELL = 0xE4;
+			baud = 19200;
             break;
         case BaudRate_38400:
             S1RELH = 0x2A;
             S1RELL = 0xF2;
+			baud = 38400;
             break;
         case BaudRate_57600:
             S1RELH = 0x1C;
             S1RELL = 0x4C;
+			baud = 57600;
             break;
         case BaudRate_115200:
             S1RELH = 0x0D;
             S1RELL = 0xA6;
+			baud = 115200;
             break;
         default : //19200
             S1RELH = 0x56;
             S1RELL = 0xE4;
+			baud = 19200;
             break;  
     }
     uint8_t cmd[] = {VC0706_SET_PORT,0x03,0x01,S1RELH,S1RELL};
