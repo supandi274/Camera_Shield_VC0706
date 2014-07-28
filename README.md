@@ -87,7 +87,7 @@ buffer = cam.readPicture(bytesToRead);
 and we allow you to read data via two mode: 
 ```
 1. UART —— slower mode. Software Serial only support 9600/19200 baud rate. Hardware Serial can be 115200/38400/19200/9600. It will take about 30s to get a picture if you choose the uart mode and at 19200 baud rate. 
-2. SPI —— faster mode. It will only take about 2s to get the whole picture back.
+2. SPI —— faster mode. It will only take about 1s or 2s to get the whole picture back.
 ```
 You can choose your mode in VC0706_UART header file. We use the SPI mode by default.
 ```c

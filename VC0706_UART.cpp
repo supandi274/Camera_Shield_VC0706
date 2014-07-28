@@ -133,7 +133,7 @@ void VC0706::begin(VC0706_BaudRate baudRate)
 	pinMode(SLAVE_PIN, OUTPUT);
 	digitalWrite(SLAVE_PIN,HIGH);
 	SPI.setBitOrder(MSBFIRST);
-	SPI.setClockDivider(SPI_CLOCK_DIV32);
+	SPI.setClockDivider(SPI_CLOCK_DIV4);
 	SPI.setDataMode(SPI_MODE0);
 	SPI.begin(); 
 #endif
