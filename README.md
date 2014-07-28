@@ -101,7 +101,7 @@ to use the UART mode.<br><br>
 Please take the example sketches in examples folder as reference, have fun!
 
 ----
-This software is based on Adafruit's VC0706 Serial Camera library and modified by lawliet zou ![](http://www.seeedstudio.com/wiki/images/3/3f/Email-lawliet.zou.Png) for seeed studio.  
+This software is based on Adafruit's VC0706 Serial Camera library and modified by lawliet zou (![](http://www.seeedstudio.com/wiki/images/f/f8/Email-lawliet.zou.jpg)) for seeed studio.  
 it is licensed under [The BSD License](http://www.freebsd.org/copyright/freebsd-license.html). Check License.txt for more information.<br>
 
 Contributing to this software is warmly welcomed. You can do this basically by [forking](https://help.github.com/articles/fork-a-repo), committing modifications and then [pulling requests](https://help.github.com/articles/using-pull-requests) (follow the links above for operating guide). Adding change log and your contact into file header is encouraged.<br>
