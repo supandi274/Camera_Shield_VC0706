@@ -8,7 +8,6 @@
 SoftwareSerial cameraconnection(2,3);//Rx, Tx
 VC0706 cam = VC0706(&cameraconnection);
 //use hardware serial
-//HardwareSerial cameraconnection(Serial3);
 //VC0706 cam = VC0706(&Serial1);
 
 void setup() 
