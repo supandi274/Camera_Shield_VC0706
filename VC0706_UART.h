@@ -64,8 +64,8 @@
 #include <SPI.h>
 
 #define DEBUG                       0
-#define USE_SOFTWARE_SERIAL			1
-#define TRANSFER_BY_SPI				1
+#define USE_SOFTWARE_SERIAL			0
+#define TRANSFER_BY_SPI				0
 
 #if DEBUG
     #define DBG(x)                  Serial.println(x);
